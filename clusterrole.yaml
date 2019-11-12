@@ -1,0 +1,19 @@
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  namespace: default
+  name: pod-reader
+rules:
+- apiGroups: ["*"]
+  resources: ["pods"]
+  verbs: ["get", "list" ]
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  namespace: default
+  name: node-reader
+rules:
+- apiGroups: ["*"]
+  resources: ["nodes"]
+  verbs: ["get", "list" ]
