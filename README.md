@@ -39,7 +39,7 @@ $ curl -s https://securetoken.google.com/$PROJECT_ID/.well-known/openid-configur
 }
 ```
 
-Note that even the `/token` endpoint to refresh your credentials is missing used to refresh credentials.  Identity Platform uses a different endpoint at [https://developers.google.com/identity/toolkit/reference/securetoken/rest/v1/token])https://developers.google.com/identity/toolkit/reference/securetoken/rest/v1/token) which isn't advertized on discovery url.  We can still refresh the credentials but we need some custom auth plugin handling with `kubectl`.
+Note that even the `/token` endpoint to refresh your credentials is missing used to refresh credentials.  Identity Platform uses a different endpoint at [https://developers.google.com/identity/toolkit/reference/securetoken/rest/v1/token](https://developers.google.com/identity/toolkit/reference/securetoken/rest/v1/token) which isn't advertized on discovery url.  We can still refresh the credentials but we need some custom auth plugin handling with `kubectl`.
 
 Anyway, some homework/background
 
@@ -63,38 +63,17 @@ export PROJECT_ID=`gcloud config get-value core/project`
 1. [Enable Identity Platform](https://console.cloud.google.com/marketplace/details/google-cloud-platform/customer-identity)
      
 
-2. Navigate to the Firbase Console: 
-   [https://console.firebase.google.com/project/$PROJECT_ID/overview](https://console.firebase.google.com/$PROJECT_ID//overview)
+2. Navigate to the Identity Platform Console: 
+   [https://console.cloud.google.com/customer-identity/providers](https://console.cloud.google.com/customer-identity/providers)
        
 
-   "Project Overview" > "Project Settings"; at the bottom of the screen, [register a new web app](https://teak.readthedocs.io/en/latest/firebase-app-id.html).
+   Select "Project Settings on the top left" which will show the API key:
 
-   Name it anything and you should see the `apiKey` and `appId`.  Note them down (the `appID` is actually the `client_id` which we will use later)
+![images/cicp_api_key.png](images/cicp_api_key.png)
 
-    ```xml
-    <script>
-      // Your web app's Firebase configuration
-      var firebaseConfig = {
-        apiKey: "AIzREDACTED",
-        authDomain: "cicp-oidc.firebaseapp.com",
-        databaseURL: "https://cicp-oidc.firebaseio.com",
-        projectId: "cicp-oidc",
-        storageBucket: "cicp-oidc.appspot.com",
-        messagingSenderId: "343794733782",
-        appId: "1:343794733782:web:ed30d1cREDACTED"
-      };
-      // Initialize Firebase
-      firebase.initializeApp(firebaseConfig);
-    </script>
-    ```
-  In the examples below, my projectID is `cicp-oidc`.
-
-![images/fb_settings.png](images/fb_settings.png)
-
-
+export the value
 ```
 export API_KEY=AIzaSyBEHKUoYqPQkQus-reaacted
-export CLIENT_ID=1:343794733782:web:ed30d1c3redacted
 ```
 
 3. Create Service Account and download a service account key
@@ -265,6 +244,7 @@ Now allow a role/rolebinding that will give access in the following way:
 
 * `User: alice` can list pods
 * Members of `Group: group` can list nodes
+* All users that access the k8s API must have claim `isadmin: true`
 
 
 ```bash
