@@ -1,14 +1,14 @@
 
-# Kubernetes RBAC with Google Identity Platform Custom Tokens
+# Kubernetes RBAC with Google Cloud Identity Platform Custom Tokens
 
 
-Simple tutorial on how to setup [Kubernetes RBAC](https://kubernetes.io/docs/reference/access-authn-authz/rbac/) with [Google Identity Platform](https://cloud.google.com/identity-platform/) (aka Firebase Authentication; aka GitKit) 
+Simple tutorial on how to setup [Kubernetes RBAC](https://kubernetes.io/docs/reference/access-authn-authz/rbac/) with [Google Cloud Identity Platform](https://cloud.google.com/identity-platform/).
 
 This tutorial does _not_ cover setting up k8s RBAC for Google OIDC but rather with GCP's Identity Platform's [Custom Tokens](https://cloud.google.com/identity-platform/docs/concepts-admin-auth-api#custom_token_creation) with fine grained claims denoting groups or other privileged claims.  If you are interested in generic google OIDC login for k8s, please see the links in the references.
 
 Identity Platform allows your users to login via any number of mechanims to your application: the well known OIDC providers, SAML, username/password, etc.  No matter the login mechanism, you application can issue a Custom JWT token back to your users.  Within that, you can login to firebase using [signInWithCustomToken()](https://firebase.google.com/docs/reference/js/firebase.auth.Auth.html#signinwithcustomtoken)) and then access select Firebase APIs directly.  Well..what about using these tokens for kubernetes API access and RBAC?
 
-Sure..whenever a firebase app is generated, a _partial_ OIDC endpoint is also generated which kubernetes or other applications can use to verify the token and identify the user.   
+Sure..whenever a Cloud Identity Platform project is generated, a _partial_ OIDC endpoint is also generated which kubernetes or other applications can use to discover the odidc services and verify the token that identifies the user.   
 
 This tutorial sets minikube and Cloud Identity Platform as the provider.  In addition, this tutorial demonstrates how to allow RBAC access based on user,groups, required Claims as well as an `exec` provider for `kubectl`.
 
@@ -16,11 +16,11 @@ This tutorial sets minikube and Cloud Identity Platform as the provider.  In add
 
 Anyway, lets get started
 
-I'm assuming you've read up on OIDC provider for kubernetes using a standard provider such as Google (see links below).  If you did you're probably wondering what i meant by partial in the intro....Well you can partially sic what i mean by looking at the [/.well-known/openid-configuration](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest) for google as well as a firebase app.  For example, compare:
+I'm assuming you've read up on OIDC provider for kubernetes using a standard provider such as Google (see links below).  If you did you're probably wondering what i meant by partial in the intro....Well you can partially sic what i mean by looking at the [/.well-known/openid-configuration](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest) for google or other providers.  For example, compare:
 
 * `accounts.google.com`: [https://accounts.google.com/.well-known/openid-configuration](https://accounts.google.com/.well-known/openid-configuration)
 
-vs a sample firebase endpoint:
+vs a sample Google Cloud Identity Platform endpoint:
 
 ```json
 $ curl -s https://securetoken.google.com/$PROJECT_ID/.well-known/openid-configuration | jq '.'
@@ -45,11 +45,9 @@ Anyway, some homework/background
 
 - [Kubernetes OpenID Connect Tokens](https://kubernetes.io/docs/admin/authentication/#openid-connect-tokens)
 - [Kubernetes Master Configuration](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#configuring-the-api-server)
-- [Cloud Identity](https://console.cloud.google.com/marketplace/details/google-cloud-platform/customer-identity)
-- [Cloud Identity/Firebase Custom Tokens](https://firebase.google.com/docs/auth/admin/create-custom-tokens)
-
-
-- Firebase JWK URL: [https://www.googleapis.com/robot/v1/metadata/jwk/securetoken@system.gserviceaccount.com](https://www.googleapis.com/robot/v1/metadata/jwk/securetoken@system.gserviceaccount.com)
+- [Google Cloud Identity](https://console.cloud.google.com/marketplace/details/google-cloud-platform/customer-identity)
+- [Cloud Identity Custom Tokens](https://firebase.google.com/docs/auth/admin/create-custom-tokens)
+- [STSJWK URL](https://www.googleapis.com/robot/v1/metadata/jwk/securetoken@system.gserviceaccount.com)
 
 
 ### Create New Project
@@ -378,7 +376,7 @@ Note, `fb_token.py` does not send back the Expiration time for the token...thats
 * Google OIDC with k8s RBAC Tutorials:
   - [Kubernetes Authn/Authz with Google OIDC and RBAC](https://medium.com/@jessgreb01/kubernetes-authn-authz-with-google-oidc-and-rbac-74509ca8267e)
   - [Kubernetes 1.6.1 authentication by using Google OpenID](https://cloud.google.com/community/tutorials/kubernetes-auth-openid-rbac)
-* Firebase JWK URL: [https://www.googleapis.com/robot/v1/metadata/jwk/securetoken@system.gserviceaccount.com](https://www.googleapis.com/robot/v1/metadata/jwk/securetoken@system.gserviceaccount.com)
+* STS JWK URL: [https://www.googleapis.com/robot/v1/metadata/jwk/securetoken@system.gserviceaccount.com](https://www.googleapis.com/robot/v1/metadata/jwk/securetoken@system.gserviceaccount.com)
 
 
 ### Known Issues

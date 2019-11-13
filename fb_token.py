@@ -59,7 +59,8 @@ def getSTSToken(tok):
   try:
 
     # https://cloud.google.com/identity-platform/docs/reference/rest/client/#section-verify-custom-token
-    url = 'https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=' + API_KEY
+    #url = 'https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=' + API_KEY 
+    url = 'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyCustomToken?key='+ API_KEY
     data = {'returnSecureToken' : True,
             'token' :tok}
     headers = {"Content-type": "application/x-www-form-urlencoded"}
