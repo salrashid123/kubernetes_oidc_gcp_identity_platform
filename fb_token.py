@@ -27,6 +27,10 @@ default_app = None
 
 API_KEY=''
 
+cred = credentials.Certificate('svc_account.json')
+default_app = firebase_admin.initialize_app(cred)
+
+
 def verifyIdToken(id_token):
     try:
       decoded_token = auth.verify_id_token(id_token)
@@ -108,15 +112,12 @@ def refreshToken(tok):
 if __name__ == '__main__':
 
     if len(sys.argv) < 3:
-      print "Usage: python fb_token.py print|refresh $API_KEY ($REFRESH_TOKEN)"
+      print "Usage: python fb_token.py print|refresh|claim $API_KEY ($REFRESH_TOKEN)"
       sys.exit(1)
     mode=sys.argv[1]
     API_KEY=sys.argv[2]
 
     if mode=="print":
-      cred = credentials.Certificate('svc_account.json')
-      default_app = firebase_admin.initialize_app(cred)   
-    
       fbtok = getFBToken('alice',['group1','group2']) 
       print "FB Token for alice\n"
       print fbtok
@@ -134,5 +135,10 @@ if __name__ == '__main__':
         sys.exit(1)      
       print refreshToken(sys.argv[3])
       # print accesstok      
+    elif mode=='claim':
+      uid = 'alice'
+      auth.set_custom_user_claims(uid, {'admin': True})
+      u = auth.get_user('alice')
+      print u.__dict__
 
 
