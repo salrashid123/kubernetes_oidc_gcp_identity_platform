@@ -97,7 +97,7 @@ pip install -r requirements.txt
 Now run the script
 
 ```
-$ python fb_token.py 
+$ python fb_token.py print $API_KEY alice
 Getting custom id_token
 FB Token for alice
 

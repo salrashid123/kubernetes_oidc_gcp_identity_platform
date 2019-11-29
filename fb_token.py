@@ -27,8 +27,9 @@ default_app = None
 
 API_KEY=''
 
+
 cred = credentials.Certificate('svc_account.json')
-default_app = firebase_admin.initialize_app(cred)
+default_app = firebase_admin.initialize_app(cred)   
 
 
 def verifyIdToken(id_token):
@@ -112,18 +113,21 @@ def refreshToken(tok):
 if __name__ == '__main__':
 
     if len(sys.argv) < 3:
-      print "Usage: python fb_token.py print|refresh|claim $API_KEY ($REFRESH_TOKEN)"
+      print "Usage: python fb_token.py print|refresh|claim $API_KEY ($UID|$REFRESH_TOKEN)"
       sys.exit(1)
     mode=sys.argv[1]
     API_KEY=sys.argv[2]
 
     if mode=="print":
-      fbtok = getFBToken('alice',['group1','group2']) 
-      print "FB Token for alice\n"
+      if len(sys.argv) < 4:
+        print "Must provide Username/uid if mode=print"
+        sys.exit(1)       
+      fbtok = getFBToken(sys.argv[3],['group1','group2']) 
+      print "FB Token for " + sys.argv[3]
       print fbtok
       print '-----------------------------------------------------'
       ststok, refreshToken = getSTSToken(fbtok)
-      print "STS Token for alice \n"
+      print "STS Token for " + sys.argv[3]
       print "ID TOKEN: " + ststok
       print '-------'
       print "refreshToken TOKEN: " + refreshToken    
@@ -131,14 +135,17 @@ if __name__ == '__main__':
       print '-----------------------------------------------------'
     elif mode=='refresh':
       if len(sys.argv) < 4:
-        print "Must provide REFESH TOKEN if mode=refresh"
+        print "Must provide REFRESH TOKEN if mode=refresh"
         sys.exit(1)      
       print refreshToken(sys.argv[3])
-      # print accesstok      
+      # print accesstok
     elif mode=='claim':
-      uid = 'alice'
+      if len(sys.argv) < 4:
+        print "Must provide Username/uid if mode=claim"
+        sys.exit(1)   
+      uid = sys.argv[3]
       auth.set_custom_user_claims(uid, {'admin': True})
-      u = auth.get_user('alice')
+      u = auth.get_user(uid)
       print u.__dict__
 
 
