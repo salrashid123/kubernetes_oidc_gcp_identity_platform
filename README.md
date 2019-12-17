@@ -1,5 +1,5 @@
 
-# Kubernetes RBAC with Google Cloud Identity Platform Custom Tokens
+# Kubernetes RBAC with Google Cloud Identity Platform/Firbase Tokens
 
 
 Simple tutorial on how to setup [Kubernetes RBAC](https://kubernetes.io/docs/reference/access-authn-authz/rbac/) with [Google Cloud Identity Platform](https://cloud.google.com/identity-platform/).
@@ -74,17 +74,25 @@ export the value
 export API_KEY=AIzaSyBEHKUoYqPQkQus-reaacted
 ```
 
-3. Create Service Account and download a service account key
+3. Download the Firebase Service Account service account key
 
-```
-gcloud iam service-accounts create cicp-admin-client-account --display-name "CICP Admin Client Service Account"
-gcloud iam service-accounts keys create svc_account.json --iam-account=cicp-admin-client-account@$PROJECT_ID.iam.gserviceaccount.com
-```
+Since we are going to partially manage accounts using the Firebase SDK to setup the cliams, we need a service_account capable of interacting with Firebase users.
+
+To do that, first download a the [Firebase Service Account JSON file](https://firebase.google.com/docs/admin/setup#initialize-sdk).  Save that at `svc_account.json`
+
+![images/firebase_sa.png](images/firebase_sa.png)
 
 4. Setup python client to get initial token
 
 Included in this repo is a sample application which uses the service account to create a new user called `alice` as an Identity Platform user.
-This script will also generate a Custom token ad then display`id_token` and `refresh_token`.   Finally, we will use this script later for the kubernetes auth plugin.
+This script will also generate a Custom token ad then display `id_token` and `refresh_token`.  
+
+Later on, we will also setup a user (`tim`) with a permanent claim that is present in the default id_token provided by firebase login.
+
+Finally, we will use this script later for the kubernetes auth plugin.  
+
+
+- **Using Custom Tokens:**
 
 You will need `python27`, `python-pip` installed/
 
@@ -101,16 +109,17 @@ $ python fb_token.py print $API_KEY alice
 Getting custom id_token
 FB Token for alice
 
-eyJhbGciOiAiUlMyNTYiLCAidHlwIjogIkpXVCIsICJraWQiOiAiMDBiYWI0NzFkMzJiYzUyMWIyYmI4MWY2NTUzNmZmYzA4NDgwMTc4MiJ9.eyJ1aWQiOiAiYWxpY2UiLCAiaXNzIjogImNpY3AtYWRtaW4tY2xpZW50LWFjY291bnRAY2ljcC1vaWRjLmlhbS5nc2VydmljZWFjY291bnQuY29tIiwgImV4cCI6IDE1NzM1NDI2ODgsICJjbGFpbXMiOiB7ImlzYWRtaW4iOiAidHJ1ZSIsICJncm91cHMiOiBbImdyb3VwMSIsICJncm91cDIiXX0sICJpYXQiOiAxNTczNTM5MDg4LCAiYXVkIjogImh0dHBzOi8vaWRlbnRpdHl0b29sa2l0Lmdvb2dsZWFwaXMuY29tL2dvb2dsZS5pZGVudGl0eS5pZGVudGl0eXRvb2xraXQudjEuSWRlbnRpdHlUb29sa2l0IiwgInN1YiI6ICJjaWNwLWFkbWluLWNsaWVudC1hY2NvdW50QGNpY3Atb2lkYy5pYW0uZ3NlcnZpY2VhY2NvdW50LmNvbSJ9.iUwZ0q_htjMAJKYpbo3aGuFC2XxGeSK2JT1m8vDsqHT_DFK_z3SUl-eL4ClwyTVgecm-HtJ_SCU3rMWVQ91AZqLijuPHXCe1YrVDhl7TAJZ7Ad787i7wKjGoT4bRzJZOKa9KHbTu1jVjh8FNB_qHbSPs3VLnXDcbacLtHomFgxPx1LvUATIFz3xw1Tp_cxGZ0CENw6po4N0_3GzwzJJ4goWVUne5vqDkRQ4cD8cgt4ejWU_UNzuBmPyFPhj5qOl_YowFR8HKnQOsRTv7Y5MV2VfLL1LWID7m3YPcne6poZhx8Ys_sAZ-ySisqAgzcd2nHyCedPCAad9sm2vXKFAkXw
+eyJhbGciOiAiUlMyNTYiLCAidHlwIjogIkpXVCIsICJraWQiOiAiN2MwYmQyYzQ2NTExNjgwNzA2Mjk0ZTg4MmVmOTlmZTE2ZjZhZWUzNyJ9.eyJ1aWQiOiAiYWxpY2UiLCAiaXNzIjogImZpcmViYXNlLWFkbWluc2RrLXNpMGhtQGNpY3Atb2lkYy5pYW0uZ3NlcnZpY2VhY2NvdW50LmNvbSIsICJleHAiOiAxNTc2NjE1OTI5LCAiY2xhaW1zIjogeyJpc2FkbWluIjogInRydWUiLCAiZ3JvdXBzIjogWyJncm91cDEiLCAiZ3JvdXAyIl19LCAiaWF0IjogMTU3NjYxMjMyOSwgImF1ZCI6ICJodHRwczovL2lkZW50aXR5dG9vbGtpdC5nb29nbGVhcGlzLmNvbS9nb29nbGUuaWRlbnRpdHkuaWRlbnRpdHl0b29sa2l0LnYxLklkZW50aXR5VG9vbGtpdCIsICJzdWIiOiAiZmlyZWJhc2UtYWRtaW5zZGstc2kwaG1AY2ljcC1vaWRjLmlhbS5nc2VydmljZWFjY291bnQuY29tIn0.CFioojdpUDTOtNuYthygjL_XtHnNJmlhALH6DMSmdC2WpmRQ5iBBMhPPNWo5cMkdTblFPOCDcSEKbVjufFEHwi-6cCmXwskKByjD62uZWh5VTDS9fGBQ2rzfGyLL7U6RVIwRN9NXwexp_toEmII4mApXYfsfpdSaNMbSUEFwH7Q4L50COeec_hw18572CZY-BqcbCXu_1tFT05kf4Gj9YXIAyS5Fmuv_8zhM7BnNkXwjvJfXsp6n6m2Xr6MpkmnCaBb-FRMj2nwp4Top1akrd8fxaoBeshe-OrzJ0n5DRcTkdz0Ya78ZArIgXuJBmKYhuyCVVHZmUGqrUJnU6cXLMQ
 -----------------------------------------------------
+
 Getting STS id_token
-STS Token for alice 
+STS Token for alice
 
-ID TOKEN: eyJhbGciOiJSUzI1NiIsImtpZCI6IjI1MDgxMWNkYzYwOWQ5MGY5ODE1MTE5MWIyYmM5YmQwY2ViOWMwMDQiLCJ0eXAiOiJKV1QifQ.eyJpc2FkbWluIjoidHJ1ZSIsImdyb3VwcyI6WyJncm91cDEiLCJncm91cDIiXSwiaXNzIjoiaHR0cHM6Ly9zZWN1cmV0b2tlbi5nb29nbGUuY29tL2NpY3Atb2lkYyIsImF1ZCI6ImNpY3Atb2lkYyIsImF1dGhfdGltZSI6MTU3MzUzOTA4OSwidXNlcl9pZCI6ImFsaWNlIiwic3ViIjoiYWxpY2UiLCJpYXQiOjE1NzM1MzkwODksImV4cCI6MTU3MzU0MjY4OSwiZmlyZWJhc2UiOnsiaWRlbnRpdGllcyI6e30sInNpZ25faW5fcHJvdmlkZXIiOiJjdXN0b20ifX0.pcTsN280IXyIDr3CnPcy4Cy4MR1eRrr3NTugtrRQW0R00IDcuGd6pWCfcmT7kRO8jQ3xYbVS6fQLf80RuMT4Yfri7WYDPLSh5B-9mWJzEBGwmU7wzwIS5f9IMfrvF2u5aCTIWpBAuJrEZxKUSwcxeF2Lhc8gHmDK8ziQ86CcZfcDYhr4ZJ2yoTrUXgg5eUsQbp5ob3_Bde5-zyKbSVL1qpynkSzzY4xlzY2PcLyQRpAZqRuyC5ST6mU5vB59aSW7qAUzkCcHY8oJX-sFMOJkuVslqFlKMT9jdJlA_HoIuT4ZYJ3xpOufPoBYTpjXn4580tvsoTtn7Xqz3-x-yDpK-Q
-
-refreshToken TOKEN: AEu4IL3REDACTED
------------------------------------------------------
+ID TOKEN: eyJhbGciOiJSUzI1NiIsImtpZCI6ImQ3NjM1YWI2NDZlMDdmZDE5OWY3NGIwMTZhOTU0MzkyMmEwY2ZmOWEiLCJ0eXAiOiJKV1QifQ.eyJhZG1pbiI6dHJ1ZSwiaXNhZG1pbiI6InRydWUiLCJncm91cHMiOlsiZ3JvdXAxIiwiZ3JvdXAyIl0sImlzcyI6Imh0dHBzOi8vc2VjdXJldG9rZW4uZ29vZ2xlLmNvbS9jaWNwLW9pZGMiLCJhdWQiOiJjaWNwLW9pZGMiLCJhdXRoX3RpbWUiOjE1NzY2MTIzMjksInVzZXJfaWQiOiJhbGljZSIsInN1YiI6ImFsaWNlIiwiaWF0IjoxNTc2NjEyMzI5LCJleHAiOjE1NzY2MTU5MjksImZpcmViYXNlIjp7ImlkZW50aXRpZXMiOnt9LCJzaWduX2luX3Byb3ZpZGVyIjoiY3VzdG9tIn19.dzwH1FXg_wjpzQPinZ6lQ5BpG4ZDUMhovxCtiuSyJxERWh_mcvwQtnkRE5mFZUYFMmb0hDJn_fp90ky5Kg5_W43eqfTL2_lwNMXC1hLyVZj0mJC5aSaMXnsHgEoOtUumq4afr21dn2URL8AY9uybWT-Icq_gC7cVxas9B2nnLTdRw7_MnlNF5nLk8zQ-bC1eLGamax3DLyF7bTN2n9KG3M-vKTuMXwKYlAlIr8btE5esYPt_jeQH-hUTE-NsRbbtVC0IE6qlou23QJb8WMGOwMPe0C91WhBfHOXXLt9fEznmMto-OTWBYY-quBjTMoFbz9UT61K6JtD-6Xf8pKzj0Q
+-------
+refreshToken TOKEN: AEu4IL3yZ96DibHhf54Jv--redacted
 Verified User alice
+
 ```
 
 The script will display two tokens:
@@ -121,7 +130,7 @@ the first `FB Token` is simply a self-signed JWT issued by the  service account.
 ```json
 {
   "uid": "alice",
-  "iss": "cicp-admin-client-account@cicp-oidc.iam.gserviceaccount.com",
+  "iss": "firebase-adminsdk-si0hm@cicp-oidc.iam.gserviceaccount.com",
   "exp": 1573544650,
   "claims": {
     "isadmin": "true",
@@ -132,7 +141,7 @@ the first `FB Token` is simply a self-signed JWT issued by the  service account.
   },
   "iat": 1573541050,
   "aud": "https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit",
-  "sub": "cicp-admin-client-account@cicp-oidc.iam.gserviceaccount.com"
+  "sub": "firebase-adminsdk-si0hm@cicp-oidc.iam.gserviceaccount.com"
 }
 ```
 
@@ -171,6 +180,62 @@ $ export TOKEN=<value>
 $ export REFRESH_TOKEN=<value>
 ```
 
+- **Using Default Tokens**
+
+If you want to add permanent claims to a user, you can invoke `auth.set_custom_user_claims()` api endpoint through firebase itself.  
+What that api will do is associate a claim you choose to the user and when the user gets their default Firebase id_token (which they will get when they login), that claim will be present always.  You do _not_ have to create a custom token with this mechanism:  once you set this up, any id_token the user is given by the act of logging in will have that claim already:
+
+The API which we will use in this variation is:
+
+```
+firebase_admin.auth.set_custom_user_claims(uid, custom_claims, app=None)
+Sets additional claims on an existing user account.
+```
+
+For example, to associate 'admin=true' claim permanently to an account 'tim` that already exists, invoke:
+
+```
+$  python fb_token.py claim $API_KEY tim
+
+{'_data': {u'localId': u'tim', u'lastLoginAt': u'1576609070680', u'customAuth': True, u'customAttributes': u'{"admin": true}', u'lastRefreshAt': u'2019-12-17T18:57:50.680Z', u'createdAt': u'1576609070680'
+```
+
+Now when `tim` logs into firebase itself later on, the `idToken` that gets returned via Firebase
+
+```javascript
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (user) {   
+        console.log(user);        
+        firebase.auth().currentUser.getIdToken(true).then(function(idToken) {
+          console.log(idToken);
+```
+
+will have the claim in it already:
+
+```json
+{
+  "admin": true,
+  "iss": "https://securetoken.google.com/cicp-oidc",
+  "aud": "cicp-oidc",
+  "auth_time": 1576611882,
+  "user_id": "tim",
+  "sub": "tim",
+  "iat": 1576611976,
+  "exp": 1576615576,
+  "firebase": {
+    "identities": {},
+    "sign_in_provider": "custom"
+  }
+}
+```
+
+And ofcourse you can print the default token `tim` has.  (note, if we did not run `claim` api as we did previously, the two additional custom claims will not be present)
+
+```json
+$ python fb_token.py print $API_KEY tim
+```
+
+You can use either the Custom or Defult token in the next step
 
 5. Start Minikube with RBAC,OIDC configurations
 
@@ -413,4 +478,5 @@ I initially set a custom claim as boolean in the JWT:  `isadmin: true`.  However
 {"log":"E1112 03:45:48.070398  1 authentication.go:65] 
      Unable to authenticate the request due to an error: [invalid bearer token, oidc: parse claim isadmin: json: 
      cannot unmarshal bool into Go value of type string]\n","stream":"stderr","time":"2019-11-12T03:45:48.070786233Z"
-}```
+}
+```
