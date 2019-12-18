@@ -1,10 +1,10 @@
 
-# Kubernetes RBAC with Google Cloud Identity Platform/Firbase Tokens
+# Kubernetes RBAC with Google Cloud Identity Platform/Firebase Tokens
 
 
 Simple tutorial on how to setup [Kubernetes RBAC](https://kubernetes.io/docs/reference/access-authn-authz/rbac/) with [Google Cloud Identity Platform](https://cloud.google.com/identity-platform/).
 
-This tutorial does _not_ cover setting up k8s RBAC for Google OIDC but rather with GCP's Identity Platform's [Custom Tokens](https://cloud.google.com/identity-platform/docs/concepts-admin-auth-api#custom_token_creation) with fine grained claims denoting groups or other privileged claims.  If you are interested in generic google OIDC login for k8s, please see the links in the references.
+This tutorial does _not_ cover setting up k8s RBAC for Google OIDC but rather with how to configure _generic_ k8s with GCP's Identity Platform's [Custom Tokens](https://cloud.google.com/identity-platform/docs/concepts-admin-auth-api#custom_token_creation).  If you are interested in Google OIDC login for k8s, please see the links in the references.  Also, as of 12/18/19, GKE does not support defining your own OIDC provider so this article covers situation you want to use Identity Platform with a k8s server where you can specify the provider.
 
 Identity Platform allows your users to login via any number of mechanims to your application: the well known OIDC providers, SAML, username/password, etc.  No matter the login mechanism, you application can issue a Custom JWT token back to your users.  Within that, you can login to firebase using [signInWithCustomToken()](https://firebase.google.com/docs/reference/js/firebase.auth.Auth.html#signinwithcustomtoken)) and then access select Firebase APIs directly.  Well..what about using these tokens for kubernetes API access and RBAC?
 
