@@ -416,7 +416,7 @@ $ kubectl get svc --user="alice"
 Error from server (Forbidden): services is forbidden: User "alice" cannot list resource "services" in API group "" in the namespace "default"
 ```
 
-If you want, set `-v-10` to see all the gory details
+If you want, set `-v=10` to see all the gory details
 
 
 12. Remove access to test:

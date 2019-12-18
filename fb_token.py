@@ -144,7 +144,7 @@ if __name__ == '__main__':
         print "Must provide Username/uid if mode=claim"
         sys.exit(1)   
       uid = sys.argv[3]
-      auth.set_custom_user_claims(uid, {'admin': True})
+      auth.set_custom_user_claims(uid, {'isadmin': True})
       u = auth.get_user(uid)
       print u.__dict__
 
