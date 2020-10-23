@@ -94,10 +94,10 @@ Finally, we will use this script later for the kubernetes auth plugin.
 
 - **Using Custom Tokens:**
 
-You will need `python27`, `python-pip` installed/
+You will need `python37`, `python-pip` installed/
 
 ```
-virtualenv env
+https://github.com/salrashid123/kubernetes_oidc_gcp_identity_platform.git
 source env/bin/activate
 pip install -r requirements.txt
 ```
